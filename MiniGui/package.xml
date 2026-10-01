@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<Package Name="MiniGui" Version="1.0.0" OS="Windows" Architecture="AnyCPU" xmlns="http://opentap.io/schemas/package">
+<Package Name="MiniGui" Version="0.0.1" OS="Windows" Architecture="AnyCPU" xmlns="http://opentap.io/schemas/package">
   <Description>Minimal WPF operator window for running OpenTAP plans.</Description>
   <Owner>diegotacconi</Owner>
   <SourceUrl>https://github.com/diegotacconi/TapMiniGui</SourceUrl>
