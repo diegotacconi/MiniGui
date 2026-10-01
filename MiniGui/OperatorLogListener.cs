@@ -1,18 +1,27 @@
 using System;
 using System.Collections.Generic;
 using System.Windows.Controls;
+using System.Windows.Media;
 using System.Windows.Threading;
 using OpenTap;
 using OpenTap.Diagnostic;
 
 namespace MiniGui
 {
+    internal sealed class OperatorLogEntry
+    {
+        public string Text { get; set; }
+        public Brush Foreground { get; set; }
+
+        public override string ToString() => Text;
+    }
+
     internal sealed class OperatorLogListener : TraceListener
     {
         private const int MaxEntries = 1000;
         private readonly Dispatcher _dispatcher;
         private readonly ListBox _list;
-        private readonly Queue<string> _pending = new Queue<string>();
+        private readonly Queue<OperatorLogEntry> _pending = new Queue<OperatorLogEntry>();
         private readonly object _gate = new object();
         private bool _scheduled;
         private bool _disposed;
@@ -33,13 +42,34 @@ namespace MiniGui
                 {
                     if (_pending.Count == MaxEntries)
                         _pending.Dequeue();
-                    _pending.Enqueue($"{new DateTime(entry.Timestamp):HH:mm:ss.fff} [{entry.EventType}] {entry.Source}: {entry.Message?.TrimEnd('\r', '\n')}");
+                    _pending.Enqueue(new OperatorLogEntry
+                    {
+                        Text = $"{new DateTime(entry.Timestamp):HH:mm:ss.fff} [{entry.EventType}] {entry.Source}: {entry.Message?.TrimEnd('\r', '\n')}",
+                        Foreground = GetColorForTraceLevel((LogEventType)entry.EventType)
+                    });
                 }
                 if (!_scheduled && _pending.Count != 0 && !_dispatcher.HasShutdownStarted)
                 {
                     _scheduled = true;
                     _dispatcher.BeginInvoke(new Action(Drain));
                 }
+            }
+        }
+
+        private static Brush GetColorForTraceLevel(LogEventType eventType)
+        {
+            switch (eventType)
+            {
+                case LogEventType.Debug:
+                    return Brushes.Gray;
+                case LogEventType.Information:
+                    return Brushes.Black;
+                case LogEventType.Warning:
+                    return Brushes.DarkOrange;
+                case LogEventType.Error:
+                    return Brushes.DarkRed;
+                default:
+                    return Brushes.Red;
             }
         }
 

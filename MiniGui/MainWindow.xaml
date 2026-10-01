@@ -62,7 +62,13 @@
         </StackPanel>
         <GroupBox Header="OpenTAP log">
             <ListBox x:Name="LogList" FontFamily="Consolas" FontSize="12"
-                     ScrollViewer.HorizontalScrollBarVisibility="Auto" />
+                     ScrollViewer.HorizontalScrollBarVisibility="Auto">
+                <ListBox.ItemTemplate>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding Text}" Foreground="{Binding Foreground}" />
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
         </GroupBox>
     </DockPanel>
 </Window>
