@@ -10,22 +10,24 @@ jobs:
   build:
     runs-on: windows-latest
     steps:
-      - name: Checkout    
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Setup DotNet
       - uses: actions/setup-dotnet@v4
         with:
-         dotnet-version: '6.0.x'
+          dotnet-version: 8.0.x
 
-      - name: Build and Package
+      - name: Build and package
         run: dotnet build MiniGui.sln -c Release
 
-      - name: Upload
+      - name: Verify tap command discovery
+        shell: pwsh
+        run: |
+          $help = & .\bin\Release\net472\tap.exe minigui --help 2>&1 | Out-String
+          if ($help -notmatch 'Usage: minigui') { Write-Output $help; exit 1 }
+
       - uses: actions/upload-artifact@v4
         with:
           name: MiniGui-TapPackage
-          retention-days: 5          
           path: bin/Release/net472/*.TapPackage
