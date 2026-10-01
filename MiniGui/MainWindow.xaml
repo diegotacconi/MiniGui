@@ -6,16 +6,33 @@
         <StackPanel DockPanel.Dock="Top">
             <TextBlock Text="Test plan (.TapPlan)" />
             <DockPanel Margin="0,4,0,8">
-                <Button DockPanel.Dock="Right" Content="Browse..." Padding="10,4"
-                        Click="Browse_Click" x:Name="BrowseButton" />
+                <Button DockPanel.Dock="Right" Padding="10,4"
+                        Click="Browse_Click" x:Name="BrowseButton">
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                        <Image Source="pack://application:,,,/MiniGui;component/Resources/OpenFolder.64.png"
+                               Width="18" Height="18" Margin="0,0,6,0" Stretch="Uniform" />
+                        <TextBlock Text="Browse..." VerticalAlignment="Center" />
+                    </StackPanel>
+                </Button>
                 <TextBox x:Name="PlanPathBox" Margin="0,0,8,0"
                          VerticalContentAlignment="Center" />
             </DockPanel>
             <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
-                <Button x:Name="StartButton" Content="Start" Padding="18,5"
-                        Click="Start_Click" />
-                <Button x:Name="StopButton" Content="Stop" Padding="18,5"
-                        Margin="8,0,0,0" Click="Stop_Click" />
+                <Button x:Name="StartButton" Padding="18,5" Click="Start_Click">
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                        <Image Source="pack://application:,,,/MiniGui;component/Resources/Play.64.png"
+                               Width="18" Height="18" Margin="0,0,6,0" Stretch="Uniform" />
+                        <TextBlock Text="Start" VerticalAlignment="Center" />
+                    </StackPanel>
+                </Button>
+                <Button x:Name="StopButton" Padding="18,5" Margin="8,0,0,0"
+                        Click="Stop_Click">
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                        <Image Source="pack://application:,,,/MiniGui;component/Resources/Stop.64.png"
+                               Width="18" Height="18" Margin="0,0,6,0" Stretch="Uniform" />
+                        <TextBlock Text="Stop" VerticalAlignment="Center" />
+                    </StackPanel>
+                </Button>
                 <TextBlock x:Name="StateText" Margin="18,0,0,0"
                            VerticalAlignment="Center" Text="Idle" />
                 <TextBlock x:Name="VerdictText" Margin="18,0,0,0"
