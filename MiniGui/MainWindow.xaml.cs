@@ -13,7 +13,7 @@ namespace MiniGui
 {
     public partial class MainWindow : Window
     {
-        private readonly OperatorLogListener _logListener;
+        private readonly LogPanel _logListener;
         private TestPlan _plan;
         private string _loadedPath;
         private string _lastAttemptedPath;
@@ -28,7 +28,7 @@ namespace MiniGui
         public MainWindow(string initialPath)
         {
             InitializeComponent();
-            _logListener = new OperatorLogListener(Dispatcher, LogList);
+            _logListener = new LogPanel(Dispatcher, LogList);
             Log.AddListener(_logListener);
             PlanPathBox.Text = initialPath ?? string.Empty;
             UpdateControls();

@@ -8,7 +8,7 @@ using OpenTap.Diagnostic;
 
 namespace MiniGui
 {
-    internal sealed class OperatorLogEntry
+    internal sealed class LogPanelEntry
     {
         public string Text { get; set; }
         public Brush Foreground { get; set; }
@@ -16,17 +16,17 @@ namespace MiniGui
         public override string ToString() => Text;
     }
 
-    internal sealed class OperatorLogListener : TraceListener
+    internal sealed class LogPanel : TraceListener
     {
         private const int MaxEntries = 1000;
         private readonly Dispatcher _dispatcher;
         private readonly ListBox _list;
-        private readonly Queue<OperatorLogEntry> _pending = new Queue<OperatorLogEntry>();
+        private readonly Queue<LogPanelEntry> _pending = new Queue<LogPanelEntry>();
         private readonly object _gate = new object();
         private bool _scheduled;
         private bool _disposed;
 
-        public OperatorLogListener(Dispatcher dispatcher, ListBox list)
+        public LogPanel(Dispatcher dispatcher, ListBox list)
         {
             _dispatcher = dispatcher;
             _list = list;
@@ -42,7 +42,7 @@ namespace MiniGui
                 {
                     if (_pending.Count == MaxEntries)
                         _pending.Dequeue();
-                    _pending.Enqueue(new OperatorLogEntry
+                    _pending.Enqueue(new LogPanelEntry
                     {
                         Text = $"{new DateTime(entry.Timestamp):HH:mm:ss.fff} [{entry.EventType}] {entry.Source}: {entry.Message?.TrimEnd('\r', '\n')}",
                         Foreground = GetColorForTraceLevel((LogEventType)entry.EventType)
