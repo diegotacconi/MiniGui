@@ -1,5 +1,7 @@
-﻿using System.Collections.Generic;
+using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.ExceptionServices;
 using System.Threading;
 using OpenTap;
 
@@ -11,7 +13,15 @@ namespace MiniGui
         {
             plan.PrintTestPlanRunSummary = true;
             resultListeners = resultListeners.Concat(ResultSettings.Current);
-            return plan.ExecuteAsync(resultListeners, new List<ResultParameter>(), null, cancellationToken).Result.Verdict;
+            try
+            {
+                return plan.ExecuteAsync(resultListeners, new List<ResultParameter>(), null, cancellationToken).Result.Verdict;
+            }
+            catch (AggregateException ex) when (ex.InnerExceptions.Count == 1)
+            {
+                ExceptionDispatchInfo.Capture(ex.InnerException).Throw();
+                throw;
+            }
         }
     }
 }

@@ -16,6 +16,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Resource Include="Resources\App.ico" />
     <Resource Include="Resources\ClearWindowContent.64.png" />
     <Resource Include="Resources\Copy.64.png" />
     <Resource Include="Resources\OpenFolder.64.png" />
