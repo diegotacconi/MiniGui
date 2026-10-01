@@ -60,31 +60,59 @@
                            VerticalAlignment="Center" Text="Verdict: -" />
             </StackPanel>
         </StackPanel>
+
+        <!-- Start of LogPanel -->   
         <GroupBox Header="OpenTAP log">
-            <ListView x:Name="LogList" FontFamily="Consolas" FontSize="12"
+            <ListView x:Name="LogList" FontFamily="Consolas" 
+                      FontWeight="Normal"
+                      BorderThickness="0"
                       SelectionMode="Extended"
                       ScrollViewer.HorizontalScrollBarVisibility="Auto">
+
+                <!-- This is required to handle ALT+C and CTRL+C -->
+                <ListView.CommandBindings>
+                    <CommandBinding Command="Cut" Executed="ClearLogPanel_Click" />
+                    <CommandBinding Command="Copy" Executed="CopyLogPanel_Click" />
+                </ListView.CommandBindings>
+
+                <!-- This is required to handle ALT+C and CTRL+C -->
+                <ListView.InputBindings>
+                    <KeyBinding Key="C" Modifiers="Alt" Command="Cut" />
+                    <KeyBinding Key="C" Modifiers="Control" Command="Copy" />
+                </ListView.InputBindings>
+
+                <ListView.Resources>
+                    <Style TargetType="{x:Type GridViewColumnHeader}">
+                        <Setter Property="HorizontalContentAlignment" Value="Left"/>
+                        <Setter Property="Padding" Value="6,3,6,3"/>
+                        <Setter Property="FontFamily" Value="Segoe UI"/>
+                    </Style>
+                </ListView.Resources>
+
+                <!-- Add line colors -->
                 <ListView.ItemContainerStyle>
                     <Style TargetType="ListViewItem">
                         <Setter Property="Foreground" Value="{Binding Foreground}" />
                     </Style>
                 </ListView.ItemContainerStyle>
+
                 <ListView.View>
                     <GridView>
                         <GridViewColumn Header="Timestamp" Width="110" DisplayMemberBinding="{Binding Timestamp}" />
                         <GridViewColumn Header="Source" Width="140" DisplayMemberBinding="{Binding Source}" />
-                        <GridViewColumn Header="Message" Width="850" DisplayMemberBinding="{Binding Message}" />
+                        <GridViewColumn Header="Message" Width="1000" DisplayMemberBinding="{Binding Message}" />
                     </GridView>
                 </ListView.View>
+
                 <ListView.ContextMenu>
                     <ContextMenu>
-                        <MenuItem Header="Clear Log Panel" Click="ClearLogPanel_Click">
+                        <MenuItem Header="Clear Log Panel" InputGestureText="Alt+C" Click="ClearLogPanel_Click">
                             <MenuItem.Icon>
                                 <Image Source="pack://application:,,,/MiniGui;component/Resources/ClearWindowContent.64.png"
                                        Width="16" Height="16" />
                             </MenuItem.Icon>
                         </MenuItem>
-                        <MenuItem Header="Copy" Click="CopyLogPanel_Click">
+                        <MenuItem Header="Copy" InputGestureText="Ctrl+C" Click="CopyLogPanel_Click">
                             <MenuItem.Icon>
                                 <Image Source="pack://application:,,,/MiniGui;component/Resources/Copy.64.png"
                                        Width="16" Height="16" />
@@ -92,7 +120,10 @@
                         </MenuItem>
                     </ContextMenu>
                 </ListView.ContextMenu>
+
             </ListView>
         </GroupBox>
+        <!-- End of LogPanel -->
+
     </DockPanel>
 </Window>
