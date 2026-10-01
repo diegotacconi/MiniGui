@@ -4,6 +4,8 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Input;
 using Microsoft.Win32;
 using OpenTap;
 
@@ -13,6 +15,8 @@ namespace MiniGui
     {
         private readonly OperatorLogListener _logListener;
         private TestPlan _plan;
+        private string _loadedPath;
+        private string _lastAttemptedPath;
         private CancellationTokenSource _runCancellation;
         private bool _running;
         private bool _stopRequested;
@@ -50,8 +54,44 @@ namespace MiniGui
             }
         }
 
+        private void PlanPathBox_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            _lastAttemptedPath = null;
+            if (_plan == null || string.Equals(PlanPathBox.Text, _loadedPath, StringComparison.Ordinal))
+                return;
+            _plan = null;
+            _loadedPath = null;
+            StateText.Text = "Idle";
+            VerdictText.Text = "Verdict: -";
+            UpdateControls();
+        }
+
+        private void PlanPathBox_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key != Key.Enter)
+                return;
+            e.Handled = true;
+            LoadTypedPath();
+        }
+
+        private void PlanPathBox_LostFocus(object sender, RoutedEventArgs e)
+        {
+            LoadTypedPath();
+        }
+
+        // Loads a typed path once per edit, so focus changes after a failed load do not repeat the error.
+        private void LoadTypedPath()
+        {
+            var path = PlanPathBox.Text;
+            if (_running || _closeRequested || _plan != null || string.IsNullOrWhiteSpace(path) ||
+                string.Equals(path, _lastAttemptedPath, StringComparison.Ordinal))
+                return;
+            LoadPlan(path);
+        }
+
         private bool LoadPlan(string path)
         {
+            _lastAttemptedPath = path;
             try
             {
                 var fullPath = Path.GetFullPath(path);
@@ -63,17 +103,22 @@ namespace MiniGui
                 _plan = TestPlan.Load(fullPath);
                 if (_plan == null)
                     throw new InvalidDataException("OpenTAP did not load a test plan.");
+                _loadedPath = fullPath;
                 PlanPathBox.Text = fullPath;
+                _lastAttemptedPath = fullPath;
                 StateText.Text = "Ready";
                 VerdictText.Text = "Verdict: -";
                 HadError = false;
+                UpdateControls();
                 return true;
             }
             catch (Exception ex)
             {
                 _plan = null;
+                _loadedPath = null;
                 StateText.Text = "Load failed";
                 HadError = true;
+                UpdateControls();
                 Log.Error(Log.CreateSource("MiniGui"), "Unable to load test plan: {0}", ex);
                 MessageBox.Show(this, ex.Message, "Unable to load test plan",
                     MessageBoxButton.OK, MessageBoxImage.Error);
@@ -83,17 +128,7 @@ namespace MiniGui
 
         private void Start_Click(object sender, RoutedEventArgs e)
         {
-            if (_running)
-                return;
-            if (string.IsNullOrWhiteSpace(PlanPathBox.Text))
-            {
-                StateText.Text = "Select a plan";
-                MessageBox.Show(this, "Select a .TapPlan file before starting.", "No test plan",
-                    MessageBoxButton.OK, MessageBoxImage.Warning);
-                return;
-            }
-
-            if (!LoadPlan(PlanPathBox.Text))
+            if (_running || _closeRequested || _plan == null)
                 return;
 
             _runCancellation = new CancellationTokenSource();
@@ -169,7 +204,7 @@ namespace MiniGui
 
         private void UpdateControls()
         {
-            StartButton.IsEnabled = !_running && !_closeRequested;
+            StartButton.IsEnabled = _plan != null && !_running && !_closeRequested;
             BrowseButton.IsEnabled = !_running && !_closeRequested;
             PlanPathBox.IsEnabled = !_running && !_closeRequested;
             StopButton.IsEnabled = _running && !_runCancellation.IsCancellationRequested;
