@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Threading;
@@ -100,17 +101,36 @@ namespace MiniGui
             {
                 if (!_disposed)
                 {
+                    // Automatic scroll only if the last item was in view before adding new entries.
+                    var scrollViewer = FindVisualChild<ScrollViewer>(_list);
+                    var followTail = scrollViewer == null ||
+                        scrollViewer.VerticalOffset >= scrollViewer.ScrollableHeight - 0.5;
+
                     while (_pending.Count != 0)
                     {
                         if (_list.Items.Count == MaxEntries)
                             _list.Items.RemoveAt(0);
                         _list.Items.Add(_pending.Dequeue());
                     }
-                    if (_list.Items.Count != 0)
+                    if (followTail && _list.Items.Count != 0)
                         _list.ScrollIntoView(_list.Items[_list.Items.Count - 1]);
                 }
                 _scheduled = false;
             }
+        }
+
+        private static T FindVisualChild<T>(DependencyObject parent) where T : DependencyObject
+        {
+            for (var i = 0; i < VisualTreeHelper.GetChildrenCount(parent); i++)
+            {
+                var child = VisualTreeHelper.GetChild(parent, i);
+                if (child is T match)
+                    return match;
+                var descendant = FindVisualChild<T>(child);
+                if (descendant != null)
+                    return descendant;
+            }
+            return null;
         }
 
         public void Stop()
