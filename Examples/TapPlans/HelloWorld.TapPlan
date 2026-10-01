@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TestPlan type="OpenTap.TestPlan" Locked="false">
+  <Steps>
+    <TestStep type="OpenTap.Plugins.BasicSteps.LogStep" Id="edc08a94-c946-4695-8ef2-c31be76bf782">
+      <LogMessage>Hello World</LogMessage>
+      <Severity>Debug</Severity>
+      <Enabled>true</Enabled>
+      <Name>LogOutput</Name>
+      <ChildTestSteps />
+    </TestStep>
+  </Steps>
+</TestPlan>
