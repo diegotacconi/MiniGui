@@ -49,7 +49,7 @@ namespace MiniGui
                     {
                         Timestamp = new DateTime(entry.Timestamp).ToString("HH:mm:ss.fff"),
                         Source = entry.Source,
-                        Message = $"[{entry.EventType}] {entry.Message?.TrimEnd('\r', '\n')}",
+                        Message = $"{entry.Message?.TrimEnd('\r', '\n')}",
                         Foreground = GetColorForTraceLevel((LogEventType)entry.EventType)
                     });
                 }
