@@ -1,0 +1,26 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net472</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <Deterministic>True</Deterministic>
+    <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
+    <OutputPath>..\bin\$(Configuration)</OutputPath>
+    <OpenTapPackageDefinitionPath>package.xml</OpenTapPackageDefinitionPath>
+    <CreateOpenTapPackage>true</CreateOpenTapPackage>
+    <InstallCreatedOpenTapPackage>false</InstallCreatedOpenTapPackage>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="OpenTAP" Version="9.21.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Resources\ClearWindowContent.64.png" />
+    <Resource Include="Resources\Copy.64.png" />
+    <Resource Include="Resources\OpenFolder.64.png" />
+    <Resource Include="Resources\Play.64.png" />
+    <Resource Include="Resources\Stop.64.png" />
+  </ItemGroup>
+
+</Project>
