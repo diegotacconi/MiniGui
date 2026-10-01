@@ -63,7 +63,7 @@ namespace MiniGui
                 _plan = TestPlan.Load(fullPath);
                 if (_plan == null)
                     throw new InvalidDataException("OpenTAP did not load a test plan.");
-                LoadedPlanText.Text = "Loaded: " + fullPath;
+                PlanPathBox.Text = fullPath;
                 StateText.Text = "Ready";
                 VerdictText.Text = "Verdict: -";
                 HadError = false;
@@ -72,7 +72,6 @@ namespace MiniGui
             catch (Exception ex)
             {
                 _plan = null;
-                LoadedPlanText.Text = "No plan loaded";
                 StateText.Text = "Load failed";
                 HadError = true;
                 Log.Error(Log.CreateSource("MiniGui"), "Unable to load test plan: {0}", ex);

@@ -14,8 +14,26 @@
                         <TextBlock Text="Browse..." VerticalAlignment="Center" />
                     </StackPanel>
                 </Button>
-                <TextBox x:Name="PlanPathBox" Margin="0,0,8,0"
-                         VerticalContentAlignment="Center" />
+                <Grid Margin="0,0,8,0">
+                    <TextBox x:Name="PlanPathBox"
+                             AutomationProperties.Name="Test plan path (.TapPlan)"
+                             VerticalContentAlignment="Center" />
+                    <TextBlock Text="No plan loaded" Margin="4,0,0,0"
+                               VerticalAlignment="Center" Foreground="Gray"
+                               IsHitTestVisible="False">
+                        <TextBlock.Style>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="Visibility" Value="Collapsed" />
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding Text, ElementName=PlanPathBox}"
+                                                 Value="">
+                                        <Setter Property="Visibility" Value="Visible" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </TextBlock.Style>
+                    </TextBlock>
+                </Grid>
             </DockPanel>
             <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
                 <Button x:Name="StartButton" Padding="18,5" Click="Start_Click">
@@ -38,8 +56,6 @@
                 <TextBlock x:Name="VerdictText" Margin="18,0,0,0"
                            VerticalAlignment="Center" Text="Verdict: -" />
             </StackPanel>
-            <TextBlock x:Name="LoadedPlanText" Text="No plan loaded"
-                       Margin="0,0,0,8" TextTrimming="CharacterEllipsis" />
         </StackPanel>
         <GroupBox Header="OpenTAP log">
             <ListBox x:Name="LogList" FontFamily="Consolas" FontSize="12"
