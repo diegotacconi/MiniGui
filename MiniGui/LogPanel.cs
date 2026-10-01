@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Threading;
@@ -10,23 +11,25 @@ namespace MiniGui
 {
     internal sealed class LogPanelEntry
     {
-        public string Text { get; set; }
+        public string Timestamp { get; set; }
+        public string Source { get; set; }
+        public string Message { get; set; }
         public Brush Foreground { get; set; }
 
-        public override string ToString() => Text;
+        public override string ToString() => $"{Timestamp} ; {Source} ; {Message}";
     }
 
     internal sealed class LogPanel : TraceListener
     {
         private const int MaxEntries = 1000;
         private readonly Dispatcher _dispatcher;
-        private readonly ListBox _list;
+        private readonly ListView _list;
         private readonly Queue<LogPanelEntry> _pending = new Queue<LogPanelEntry>();
         private readonly object _gate = new object();
         private bool _scheduled;
         private bool _disposed;
 
-        public LogPanel(Dispatcher dispatcher, ListBox list)
+        public LogPanel(Dispatcher dispatcher, ListView list)
         {
             _dispatcher = dispatcher;
             _list = list;
@@ -44,7 +47,9 @@ namespace MiniGui
                         _pending.Dequeue();
                     _pending.Enqueue(new LogPanelEntry
                     {
-                        Text = $"{new DateTime(entry.Timestamp):HH:mm:ss.fff} [{entry.EventType}] {entry.Source}: {entry.Message?.TrimEnd('\r', '\n')}",
+                        Timestamp = new DateTime(entry.Timestamp).ToString("HH:mm:ss.fff"),
+                        Source = entry.Source,
+                        Message = $"[{entry.EventType}] {entry.Message?.TrimEnd('\r', '\n')}",
                         Foreground = GetColorForTraceLevel((LogEventType)entry.EventType)
                     });
                 }
@@ -54,6 +59,22 @@ namespace MiniGui
                     _dispatcher.BeginInvoke(new Action(Drain));
                 }
             }
+        }
+
+        public void Clear()
+        {
+            lock (_gate)
+            {
+                _pending.Clear();
+                _list.Items.Clear();
+            }
+        }
+
+        public string GetSelectedText()
+        {
+            var selected = new HashSet<object>(_list.SelectedItems.Cast<object>());
+            return string.Join(Environment.NewLine, _list.Items.Cast<LogPanelEntry>()
+                .Where(selected.Contains).Select(entry => entry.ToString()));
         }
 
         private static Brush GetColorForTraceLevel(LogEventType eventType)

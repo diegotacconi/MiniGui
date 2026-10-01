@@ -168,6 +168,18 @@ namespace MiniGui
             RequestStop();
         }
 
+        private void ClearLogPanel_Click(object sender, RoutedEventArgs e)
+        {
+            _logListener.Clear();
+        }
+
+        private void CopyLogPanel_Click(object sender, RoutedEventArgs e)
+        {
+            var text = _logListener.GetSelectedText();
+            if (!string.IsNullOrEmpty(text))
+                Clipboard.SetText(text);
+        }
+
         private void RequestStop()
         {
             if (!_running || _runCancellation.IsCancellationRequested)

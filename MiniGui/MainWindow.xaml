@@ -61,14 +61,38 @@
             </StackPanel>
         </StackPanel>
         <GroupBox Header="OpenTAP log">
-            <ListBox x:Name="LogList" FontFamily="Consolas" FontSize="12"
-                     ScrollViewer.HorizontalScrollBarVisibility="Auto">
-                <ListBox.ItemTemplate>
-                    <DataTemplate>
-                        <TextBlock Text="{Binding Text}" Foreground="{Binding Foreground}" />
-                    </DataTemplate>
-                </ListBox.ItemTemplate>
-            </ListBox>
+            <ListView x:Name="LogList" FontFamily="Consolas" FontSize="12"
+                      SelectionMode="Extended"
+                      ScrollViewer.HorizontalScrollBarVisibility="Auto">
+                <ListView.ItemContainerStyle>
+                    <Style TargetType="ListViewItem">
+                        <Setter Property="Foreground" Value="{Binding Foreground}" />
+                    </Style>
+                </ListView.ItemContainerStyle>
+                <ListView.View>
+                    <GridView>
+                        <GridViewColumn Header="Timestamp" Width="110" DisplayMemberBinding="{Binding Timestamp}" />
+                        <GridViewColumn Header="Source" Width="140" DisplayMemberBinding="{Binding Source}" />
+                        <GridViewColumn Header="Message" Width="850" DisplayMemberBinding="{Binding Message}" />
+                    </GridView>
+                </ListView.View>
+                <ListView.ContextMenu>
+                    <ContextMenu>
+                        <MenuItem Header="Clear Log Panel" Click="ClearLogPanel_Click">
+                            <MenuItem.Icon>
+                                <Image Source="pack://application:,,,/MiniGui;component/Resources/ClearWindowContent.64.png"
+                                       Width="16" Height="16" />
+                            </MenuItem.Icon>
+                        </MenuItem>
+                        <MenuItem Header="Copy" Click="CopyLogPanel_Click">
+                            <MenuItem.Icon>
+                                <Image Source="pack://application:,,,/MiniGui;component/Resources/Copy.64.png"
+                                       Width="16" Height="16" />
+                            </MenuItem.Icon>
+                        </MenuItem>
+                    </ContextMenu>
+                </ListView.ContextMenu>
+            </ListView>
         </GroupBox>
     </DockPanel>
 </Window>
