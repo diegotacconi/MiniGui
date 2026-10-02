@@ -10,6 +10,6 @@ The OpenTAP `MiniGui` is a minimal WPF graphical user interface for running Open
 ### Installation examples in Windows PowerShell
 
 - Uninstall: `C:\OpenTap\tap.exe package uninstall MiniGui`
-- Install: `C:\OpenTap\tap.exe package install "C:\Temp\MiniGui.0.0.1.TapPackage"`
+- Install: `C:\OpenTap\tap.exe package install "C:\Temp\MiniGui.?.?.?.TapPackage"`
 - Run: `C:\OpenTap\tap.exe minigui`
 - Run: `C:\OpenTap\tap.exe minigui "C:\Temp\HelloWorld.TapPlan"` 
