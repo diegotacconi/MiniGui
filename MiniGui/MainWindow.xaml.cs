@@ -119,7 +119,7 @@ namespace MiniGui
                 StateText.Text = "Load failed";
                 HadError = true;
                 UpdateControls();
-                Log.Error(Log.CreateSource("MiniGui"), "Unable to load test plan: {0}", ex);
+                Log.CreateSource("MiniGui").Error("Unable to load test plan: {0}", ex);
                 MessageBox.Show(this, ex.Message, "Unable to load test plan",
                     MessageBoxButton.OK, MessageBoxImage.Error);
                 return false;
@@ -144,7 +144,7 @@ namespace MiniGui
             {
                 TapThread.Start(() =>
                 {
-                    Verdict verdict = Verdict.Inconclusive;
+                    var verdict = Verdict.Inconclusive;
                     Exception error = null;
                     try
                     {
@@ -154,6 +154,7 @@ namespace MiniGui
                     {
                         error = ex;
                     }
+
                     Dispatcher.BeginInvoke(new Action(() => FinishRun(verdict, error)));
                 });
             }
@@ -199,7 +200,7 @@ namespace MiniGui
             {
                 HadError = true;
                 StateText.Text = "Run failed";
-                Log.Error(Log.CreateSource("MiniGui"), "Test plan execution failed: {0}", error);
+                Log.CreateSource("MiniGui").Error("Test plan execution failed: {0}", error);
                 if (!_closeRequested)
                     MessageBox.Show(this, error.Message, "Test plan execution failed",
                         MessageBoxButton.OK, MessageBoxImage.Error);
@@ -209,6 +210,7 @@ namespace MiniGui
                 StateText.Text = _stopRequested ? "Stopped" : "Finished";
                 VerdictText.Text = "Verdict: " + verdict;
             }
+
             UpdateControls();
             if (_closeRequested)
                 Close();
@@ -229,6 +231,7 @@ namespace MiniGui
                 Dispatcher.BeginInvoke(new Action(RequestShutdown));
                 return;
             }
+
             Close();
         }
 
@@ -247,6 +250,7 @@ namespace MiniGui
                 _logListener.Stop();
                 _listenerRemoved = true;
             }
+
             base.OnClosing(e);
         }
     }

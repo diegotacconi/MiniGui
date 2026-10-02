@@ -33,7 +33,7 @@ namespace MiniGui
                         var app = new Application { ShutdownMode = ShutdownMode.OnMainWindowClose };
                         var window = new MainWindow(PlanPath);
                         using (cancellationToken.Register(() =>
-                            window.Dispatcher.BeginInvoke(new Action(window.RequestShutdown))))
+                                   window.Dispatcher.BeginInvoke(new Action(window.RequestShutdown))))
                         {
                             app.Run(window);
                             if (window.HadError)
@@ -57,9 +57,10 @@ namespace MiniGui
 
             if (failure != null)
             {
-                Log.Error(Log.CreateSource("MiniGui"), "MiniGui failed: {0}", failure);
+                Log.CreateSource("MiniGui").Error("MiniGui failed: {0}", failure);
                 return 1;
             }
+
             return 0;
         }
     }

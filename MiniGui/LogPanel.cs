@@ -17,13 +17,15 @@ namespace MiniGui
         public string Message { get; set; }
         public Brush Foreground { get; set; }
 
-        public override string ToString() => $"{Timestamp} ; {Source} ; {Message}";
+        public override string ToString()
+        {
+            return $"{Timestamp} ; {Source} ; {Message}";
+        }
     }
 
     internal sealed class LogPanel : TraceListener
     {
         private const int MaxEntries = 10000;
-        private readonly Dispatcher _dispatcher;
         private readonly ListView _list;
         private readonly Queue<LogPanelEntry> _pending = new Queue<LogPanelEntry>();
         private readonly object _gate = new object();
@@ -36,7 +38,6 @@ namespace MiniGui
         // priority, so heavy logging never delays input or rendering.
         public LogPanel(Dispatcher dispatcher, ListView list)
         {
-            _dispatcher = dispatcher;
             _list = list;
             _timer = new DispatcherTimer(TimeSpan.FromMilliseconds(100), DispatcherPriority.Background,
                 (sender, args) => Drain(), dispatcher);
@@ -70,6 +71,7 @@ namespace MiniGui
                 _pending.Clear();
                 _list.Items.Clear();
             }
+
             _followTail = true;
         }
 
@@ -162,6 +164,7 @@ namespace MiniGui
                 if (descendant != null)
                     return descendant;
             }
+
             return null;
         }
 
@@ -172,6 +175,7 @@ namespace MiniGui
                 _disposed = true;
                 _pending.Clear();
             }
+
             _timer.Stop();
             if (_scrollViewer != null)
                 _scrollViewer.ScrollChanged -= OnScrollChanged;
