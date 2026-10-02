@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TestPlan type="OpenTap.TestPlan"><Steps>
+<TestStep type="OpenTap.Plugins.BasicSteps.RepeatStep"><Action>Fixed_Count</Action><Count>800</Count><Name>Repeat</Name><Enabled>true</Enabled><ChildTestSteps>
+<TestStep type="OpenTap.Plugins.BasicSteps.LogStep"><LogMessage>Stress message</LogMessage><Severity>Info</Severity><Enabled>true</Enabled><Name>Log</Name><ChildTestSteps /></TestStep>
+<TestStep type="OpenTap.Plugins.BasicSteps.DelayStep"><DelaySecs>0.002</DelaySecs><Enabled>true</Enabled><Name>Delay</Name><ChildTestSteps /></TestStep>
+</ChildTestSteps></TestStep></Steps></TestPlan>
