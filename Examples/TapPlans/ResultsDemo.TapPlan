@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TestPlan type="OpenTap.TestPlan" Locked="false">
+  <Steps>
+    <TestStep type="MiniGui.MiniGuiResultsDemoStep" Id="2dd5cf4d-635f-476a-9698-cd72b39bc69c">
+      <Enabled>true</Enabled>
+      <Name>Publish Mixed Results</Name>
+      <ChildTestSteps />
+    </TestStep>
+    <TestStep type="OpenTap.Plugins.BasicSteps.DelayStep" Id="ce2b5610-b81d-44bc-8ce4-873f1828d15c">
+      <DelaySecs>5</DelaySecs>
+      <Enabled>true</Enabled>
+      <Name>Observe Results Panel</Name>
+      <ChildTestSteps />
+    </TestStep>
+  </Steps>
+</TestPlan>
