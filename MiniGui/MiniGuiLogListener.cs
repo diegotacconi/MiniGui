@@ -10,24 +10,25 @@ using OpenTap.Diagnostic;
 
 namespace MiniGui
 {
-    internal sealed class LogPanelEntry
+    internal sealed class MiniGuiLogEntry
     {
         public string Timestamp { get; set; }
+        public string Level { get; set; }
         public string Source { get; set; }
         public string Message { get; set; }
         public Brush Foreground { get; set; }
 
         public override string ToString()
         {
-            return $"{Timestamp} ; {Source} ; {Message}";
+            return $"{Timestamp} ; {Level} ; {Source} ; {Message}";
         }
     }
 
-    internal sealed class LogPanel : TraceListener
+    internal sealed class MiniGuiLogListener : TraceListener
     {
         private const int MaxEntries = 10000;
         private readonly ListView _list;
-        private readonly Queue<LogPanelEntry> _pending = new Queue<LogPanelEntry>();
+        private readonly Queue<MiniGuiLogEntry> _pending = new Queue<MiniGuiLogEntry>();
         private readonly object _gate = new object();
         private readonly DispatcherTimer _timer;
         private ScrollViewer _scrollViewer;
@@ -36,7 +37,7 @@ namespace MiniGui
 
         // Must be created on the UI thread. Pending log events are drained in batches at Background
         // priority, so heavy logging never delays input or rendering.
-        public LogPanel(Dispatcher dispatcher, ListView list)
+        public MiniGuiLogListener(Dispatcher dispatcher, ListView list)
         {
             _list = list;
             _timer = new DispatcherTimer(TimeSpan.FromMilliseconds(100), DispatcherPriority.Background,
@@ -53,9 +54,10 @@ namespace MiniGui
                 {
                     if (_pending.Count == MaxEntries)
                         _pending.Dequeue();
-                    _pending.Enqueue(new LogPanelEntry
+                    _pending.Enqueue(new MiniGuiLogEntry
                     {
                         Timestamp = new DateTime(entry.Timestamp).ToString("HH:mm:ss.fff"),
+                        Level = ((LogEventType)entry.EventType).ToString(),
                         Source = entry.Source,
                         Message = $"{entry.Message?.TrimEnd('\r', '\n')}",
                         Foreground = GetColorForTraceLevel((LogEventType)entry.EventType)
@@ -78,7 +80,7 @@ namespace MiniGui
         public string GetSelectedText()
         {
             var selected = new HashSet<object>(_list.SelectedItems.Cast<object>());
-            return string.Join(Environment.NewLine, _list.Items.Cast<LogPanelEntry>()
+            return string.Join(Environment.NewLine, _list.Items.Cast<MiniGuiLogEntry>()
                 .Where(selected.Contains).Select(entry => entry.ToString()));
         }
 
@@ -101,7 +103,7 @@ namespace MiniGui
 
         private void Drain()
         {
-            LogPanelEntry[] batch;
+            MiniGuiLogEntry[] batch;
             lock (_gate)
             {
                 if (_disposed || _pending.Count == 0)
