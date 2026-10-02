@@ -5,7 +5,6 @@
     <UseWPF>true</UseWPF>
     <Deterministic>True</Deterministic>
     <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
-    <OutputPath>..\bin\$(Configuration)</OutputPath>
     <OpenTapPackageDefinitionPath>package.xml</OpenTapPackageDefinitionPath>
     <CreateOpenTapPackage>true</CreateOpenTapPackage>
     <InstallCreatedOpenTapPackage>false</InstallCreatedOpenTapPackage>
