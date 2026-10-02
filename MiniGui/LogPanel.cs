@@ -27,13 +27,19 @@ namespace MiniGui
         private readonly ListView _list;
         private readonly Queue<LogPanelEntry> _pending = new Queue<LogPanelEntry>();
         private readonly object _gate = new object();
-        private bool _scheduled;
+        private readonly DispatcherTimer _timer;
+        private ScrollViewer _scrollViewer;
+        private bool _followTail = true;
         private bool _disposed;
 
+        // Must be created on the UI thread. Pending log events are drained in batches at Background
+        // priority, so heavy logging never delays input or rendering.
         public LogPanel(Dispatcher dispatcher, ListView list)
         {
             _dispatcher = dispatcher;
             _list = list;
+            _timer = new DispatcherTimer(TimeSpan.FromMilliseconds(100), DispatcherPriority.Background,
+                (sender, args) => Drain(), dispatcher);
         }
 
         public override void TraceEvents(IEnumerable<Event> events)
@@ -54,11 +60,6 @@ namespace MiniGui
                         Foreground = GetColorForTraceLevel((LogEventType)entry.EventType)
                     });
                 }
-                if (!_scheduled && _pending.Count != 0 && !_dispatcher.HasShutdownStarted)
-                {
-                    _scheduled = true;
-                    _dispatcher.BeginInvoke(new Action(Drain));
-                }
             }
         }
 
@@ -69,6 +70,7 @@ namespace MiniGui
                 _pending.Clear();
                 _list.Items.Clear();
             }
+            _followTail = true;
         }
 
         public string GetSelectedText()
@@ -97,26 +99,56 @@ namespace MiniGui
 
         private void Drain()
         {
+            LogPanelEntry[] batch;
             lock (_gate)
             {
-                if (!_disposed)
-                {
-                    // Automatic scroll only if the last item was in view before adding new entries.
-                    var scrollViewer = FindVisualChild<ScrollViewer>(_list);
-                    var followTail = scrollViewer == null ||
-                        scrollViewer.VerticalOffset >= scrollViewer.ScrollableHeight - 0.5;
-
-                    while (_pending.Count != 0)
-                    {
-                        if (_list.Items.Count == MaxEntries)
-                            _list.Items.RemoveAt(0);
-                        _list.Items.Add(_pending.Dequeue());
-                    }
-                    if (followTail && _list.Items.Count != 0)
-                        _list.ScrollIntoView(_list.Items[_list.Items.Count - 1]);
-                }
-                _scheduled = false;
+                if (_disposed || _pending.Count == 0)
+                    return;
+                batch = _pending.ToArray();
+                _pending.Clear();
             }
+
+            AttachScrollViewer();
+
+            var offset = _scrollViewer?.VerticalOffset ?? 0;
+            var removed = 0;
+            var overflow = _list.Items.Count + batch.Length - MaxEntries;
+            for (; removed < overflow && _list.Items.Count != 0; removed++)
+                _list.Items.RemoveAt(0);
+            foreach (var entry in batch)
+                _list.Items.Add(entry);
+
+            // Keep the rows being read in place when the oldest entries are trimmed (item-based scrolling).
+            if (!_followTail && removed != 0 && _scrollViewer != null)
+                _scrollViewer.ScrollToVerticalOffset(Math.Max(0, offset - removed));
+
+            if (_followTail)
+            {
+                if (_scrollViewer != null)
+                    _scrollViewer.ScrollToBottom();
+                else
+                    _list.ScrollIntoView(batch[batch.Length - 1]);
+            }
+        }
+
+        private void AttachScrollViewer()
+        {
+            if (_scrollViewer != null)
+                return;
+            _scrollViewer = FindVisualChild<ScrollViewer>(_list);
+            if (_scrollViewer != null)
+                _scrollViewer.ScrollChanged += OnScrollChanged;
+        }
+
+        // Automatic scroll only while the last item is in view. Only scrolling by the user (no change in
+        // content or viewport size) updates that choice, so bursts of new entries cannot cancel it before
+        // the previous scroll-to-bottom has been laid out.
+        private void OnScrollChanged(object sender, ScrollChangedEventArgs e)
+        {
+            if (e.ExtentHeightChange == 0 && e.ViewportHeightChange == 0)
+                _followTail = _scrollViewer.VerticalOffset >= _scrollViewer.ScrollableHeight - 0.5;
+            else if (_followTail)
+                _scrollViewer.ScrollToBottom();
         }
 
         private static T FindVisualChild<T>(DependencyObject parent) where T : DependencyObject
@@ -140,6 +172,9 @@ namespace MiniGui
                 _disposed = true;
                 _pending.Clear();
             }
+            _timer.Stop();
+            if (_scrollViewer != null)
+                _scrollViewer.ScrollChanged -= OnScrollChanged;
         }
     }
 }

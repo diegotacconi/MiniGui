@@ -67,6 +67,9 @@
                       FontWeight="Normal"
                       BorderThickness="0"
                       SelectionMode="Extended"
+                      VirtualizingPanel.IsVirtualizing="True"
+                      VirtualizingPanel.VirtualizationMode="Recycling"
+                      VirtualizingPanel.ScrollUnit="Item"
                       ScrollViewer.HorizontalScrollBarVisibility="Auto">
 
                 <!-- This is required to handle ALT+C and CTRL+C -->
