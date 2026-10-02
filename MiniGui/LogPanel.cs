@@ -22,7 +22,7 @@ namespace MiniGui
 
     internal sealed class LogPanel : TraceListener
     {
-        private const int MaxEntries = 1000;
+        private const int MaxEntries = 10000;
         private readonly Dispatcher _dispatcher;
         private readonly ListView _list;
         private readonly Queue<LogPanelEntry> _pending = new Queue<LogPanelEntry>();
