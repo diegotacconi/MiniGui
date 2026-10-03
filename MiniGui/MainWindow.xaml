@@ -2,7 +2,9 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="MiniGui" Icon="pack://application:,,,/MiniGui;component/Resources/App.ico"
-        Width="960" Height="960" MinWidth="480" MinHeight="480">
+        Width="960" Height="960" MinWidth="480" MinHeight="480"
+        UseLayoutRounding="True"
+        WindowStartupLocation="CenterScreen">
     <Grid Margin="12">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
