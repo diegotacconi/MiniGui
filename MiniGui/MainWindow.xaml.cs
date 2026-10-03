@@ -126,7 +126,6 @@ namespace MiniGui
                 return;
 
             HadError = false;
-            _logListener.Clear();
             _results.Clear();
             _followResultsTail = true;
             VerdictText.Text = "Verdict: -";
@@ -284,8 +283,8 @@ namespace MiniGui
                 _resultTimer.Stop();
                 if (_resultsScrollViewer != null)
                     _resultsScrollViewer.ScrollChanged -= OnResultsScrollChanged;
-                _logListener.Stop();
                 _controller.Dispose();
+                _logListener.Stop();
                 _listenersStopped = true;
             }
 

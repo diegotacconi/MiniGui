@@ -255,6 +255,8 @@ The Log panel shall be a simple read-only scrolling view.
 Requirements:
 
 - show OpenTAP log messages live,
+- retain messages from plan loading and across runs until manually cleared (subject to the line cap),
+- attach the log listener before loading the plan and detach it when the window closes,
 - auto-scroll to newest messages unless the operator has scrolled away,
 - optionally cap retained lines to prevent unbounded memory growth,
 - marshal all updates through the WPF Dispatcher.
@@ -302,11 +304,11 @@ Typical lifecycle:
 
 ```text
 Start MiniGui
+  -> attach log listener
   -> load TapPlan
   -> show Ready state
   -> operator presses START
-  -> clear previous log/results
-  -> attach log listener
+  -> clear previous results (keep logs)
   -> attach result listener
   -> execute plan through OpenTAP
   -> update Log panel live
@@ -330,9 +332,9 @@ When `START` is pressed:
 1. verify that a valid `.TapPlan` is loaded,
 2. verify that no test is already running,
 3. clear run-specific UI state,
-4. clear the Log panel,
+4. retain the Log panel, including startup and previous-run diagnostics,
 5. clear the Results panel,
-6. attach or enable log and result listeners,
+6. attach or enable the result listener,
 7. start execution through OpenTAP,
 8. update state to `Running`.
 

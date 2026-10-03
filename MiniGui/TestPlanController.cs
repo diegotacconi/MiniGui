@@ -50,6 +50,7 @@ namespace MiniGui
         public TestPlanController(MiniGuiLogListener logListener)
         {
             _logListener = logListener ?? throw new ArgumentNullException(nameof(logListener));
+            Log.AddListener(_logListener);
         }
 
         public void LoadPlan(string path)
@@ -116,13 +117,8 @@ namespace MiniGui
 
             CurrentVerdict = null;
             SetState(MiniGuiState.Running);
-            var logAttached = false;
             try
             {
-                _logListener.Clear();
-                Log.AddListener(_logListener);
-                logAttached = true;
-
                 _plan.PrintTestPlanRunSummary = true;
                 var listeners = new List<IResultListener> { _resultListener };
                 listeners.AddRange(ResultSettings.Current);
@@ -148,9 +144,6 @@ namespace MiniGui
             }
             finally
             {
-                if (logAttached)
-                    Log.RemoveListener(_logListener);
-
                 lock (_gate)
                 {
                     _isRunning = false;
@@ -202,6 +195,7 @@ namespace MiniGui
                 if (_disposed)
                     return;
 
+                Log.RemoveListener(_logListener);
                 _disposed = true;
                 _plan = null;
                 _resultListener = null;
