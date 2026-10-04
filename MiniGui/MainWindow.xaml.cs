@@ -190,7 +190,7 @@ namespace MiniGui
             if (entries.Count == 0)
                 return;
 
-            var lines = new List<string> { "Timestamp\tStep\tTable\tField\tValue" };
+            var lines = new List<string>();
             foreach (var entry in entries)
                 lines.Add(string.Join("\t",
                     entry.Timestamp, entry.Source, entry.Table, entry.Field, entry.Value));
