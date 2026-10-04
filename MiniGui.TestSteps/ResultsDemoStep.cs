@@ -1,10 +1,10 @@
 using System.Collections.Generic;
 using OpenTap;
 
-namespace MiniGui
+namespace MiniGui.TestSteps
 {
     [Display("MiniGui Results Demo")]
-    public sealed class MiniGuiResultsDemoStep : TestStep
+    public sealed class ResultsDemoStep : TestStep
     {
         public override void Run()
         {

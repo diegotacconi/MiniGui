@@ -15,6 +15,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\MiniGui.TestSteps\MiniGui.TestSteps.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Resource Include="Resources\App.ico" />
     <Resource Include="Resources\ClearWindowContent.64.png" />
     <Resource Include="Resources\Copy.64.png" />

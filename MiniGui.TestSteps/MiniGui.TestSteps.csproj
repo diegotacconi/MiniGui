@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net472</TargetFramework>
+    <Deterministic>True</Deterministic>
+    <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
+    <OpenTapPackageDefinitionPath>package.xml</OpenTapPackageDefinitionPath>
+    <CreateOpenTapPackage>true</CreateOpenTapPackage>
+    <InstallCreatedOpenTapPackage>false</InstallCreatedOpenTapPackage>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="OpenTAP" Version="9.21.0" />
+  </ItemGroup>
+
+</Project>

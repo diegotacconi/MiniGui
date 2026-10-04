@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <TestPlan type="OpenTap.TestPlan" Locked="false">
   <Steps>
-    <TestStep type="MiniGui.MiniGuiResultsDemoStep" Id="2dd5cf4d-635f-476a-9698-cd72b39bc69c">
+    <TestStep type="MiniGui.TestSteps.ResultsDemoStep" Id="2dd5cf4d-635f-476a-9698-cd72b39bc69c">
       <Enabled>true</Enabled>
       <Name>Publish Mixed Results</Name>
       <ChildTestSteps />

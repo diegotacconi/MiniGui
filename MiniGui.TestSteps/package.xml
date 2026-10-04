@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<Package Name="MiniGui.TestSteps" Version="0.0.2" OS="Windows" Architecture="AnyCPU" xmlns="http://opentap.io/schemas/package">
+  <Description>Custom test steps for exercising the MiniGui operator window.</Description>
+  <SourceUrl>https://github.com/diegotacconi/TapMiniGui</SourceUrl>
+
+  <Dependencies>
+    <PackageDependency Package="OpenTAP" Version="^9.21.0" />
+  </Dependencies>
+
+  <Files>
+    <File Path="Packages/MiniGui.TestSteps/MiniGui.TestSteps.dll" SourcePath="MiniGui.TestSteps.dll" />
+  </Files>
+
+</Package>
