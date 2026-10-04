@@ -77,13 +77,6 @@ namespace MiniGui
             _followTail = true;
         }
 
-        public string GetSelectedText()
-        {
-            var selected = new HashSet<object>(_list.SelectedItems.Cast<object>());
-            return string.Join(Environment.NewLine, _list.Items.Cast<MiniGuiLogEntry>()
-                .Where(selected.Contains).Select(entry => entry.ToString()));
-        }
-
         private static Brush GetColorForTraceLevel(LogEventType eventType)
         {
             switch (eventType)

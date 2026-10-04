@@ -172,9 +172,7 @@ namespace MiniGui
 
         private void CopyLogPanel_Click(object sender, RoutedEventArgs e)
         {
-            var text = _logListener.GetSelectedText();
-            if (!string.IsNullOrEmpty(text))
-                Clipboard.SetText(text);
+            CopyListViewItems(LogList, entry => ((MiniGuiLogEntry)entry).ToString());
         }
 
         private void ClearResultsPanel_Click(object sender, RoutedEventArgs e)
@@ -184,17 +182,24 @@ namespace MiniGui
 
         private void CopyResultsPanel_Click(object sender, RoutedEventArgs e)
         {
-            var entries = ResultsList.SelectedItems.Count > 0
-                ? ResultsList.SelectedItems.Cast<MiniGuiResultEntry>().ToList()
-                : _results.ToList();
-            if (entries.Count == 0)
+            CopyListViewItems(ResultsList, entry =>
+            {
+                var r = (MiniGuiResultEntry)entry;
+                return string.Join("\t", r.Timestamp, r.Source, r.Table, r.Field, r.Value);
+            });
+        }
+
+        // Copies the selected rows of a list, or every row when nothing is selected, preserving list order.
+        private static void CopyListViewItems(ListView list, Func<object, string> format)
+        {
+            var selected = new HashSet<object>(list.SelectedItems.Cast<object>());
+            var items = list.Items.Cast<object>()
+                .Where(item => list.SelectedItems.Count == 0 || selected.Contains(item))
+                .ToList();
+            if (items.Count == 0)
                 return;
 
-            var lines = new List<string>();
-            foreach (var entry in entries)
-                lines.Add(string.Join("\t",
-                    entry.Timestamp, entry.Source, entry.Table, entry.Field, entry.Value));
-            Clipboard.SetText(string.Join(Environment.NewLine, lines));
+            Clipboard.SetText(string.Join(Environment.NewLine, items.Select(format)));
         }
 
         private void OnStateChanged(MiniGuiState state)
