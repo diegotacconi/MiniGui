@@ -172,7 +172,10 @@ namespace MiniGui
 
         private void CopyLogPanel_Click(object sender, RoutedEventArgs e)
         {
-            CopyListViewItems(LogList, entry => ((MiniGuiLogEntry)entry).ToString());
+            var items = GetSelectedItems<MiniGuiLogEntry>(LogList);
+            if (items.Count == 0)
+                return;
+            Clipboard.SetText(string.Join(Environment.NewLine, items.Select(entry => entry.ToString())));
         }
 
         private void ClearResultsPanel_Click(object sender, RoutedEventArgs e)
@@ -182,24 +185,21 @@ namespace MiniGui
 
         private void CopyResultsPanel_Click(object sender, RoutedEventArgs e)
         {
-            CopyListViewItems(ResultsList, entry =>
-            {
-                var r = (MiniGuiResultEntry)entry;
-                return string.Join("\t", r.Timestamp, r.Source, r.Table, r.Field, r.Value);
-            });
-        }
-
-        // Copies the selected rows of a list, or every row when nothing is selected, preserving list order.
-        private static void CopyListViewItems(ListView list, Func<object, string> format)
-        {
-            var selected = new HashSet<object>(list.SelectedItems.Cast<object>());
-            var items = list.Items.Cast<object>()
-                .Where(item => list.SelectedItems.Count == 0 || selected.Contains(item))
-                .ToList();
+            var items = GetSelectedItems<MiniGuiResultEntry>(ResultsList);
             if (items.Count == 0)
                 return;
+            Clipboard.SetText(string.Join(Environment.NewLine, items.Select(entry =>
+                string.Join("\t", entry.Timestamp, entry.Source, entry.Table, entry.Field, entry.Value))));
+        }
 
-            Clipboard.SetText(string.Join(Environment.NewLine, items.Select(format)));
+        // Returns the selected rows of a list, or every row when nothing is selected, preserving list order.
+        private static List<T> GetSelectedItems<T>(ListView list)
+        {
+            var selected = new HashSet<object>(list.SelectedItems.Cast<object>());
+            return list.Items.Cast<object>()
+                .OfType<T>()
+                .Where(item => list.SelectedItems.Count == 0 || selected.Contains(item))
+                .ToList();
         }
 
         private void OnStateChanged(MiniGuiState state)
