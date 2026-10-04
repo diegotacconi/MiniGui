@@ -10,6 +10,10 @@
 
   <Files>
     <File Path="Packages/MiniGui/MiniGui.dll" SourcePath="MiniGui.dll" />
+    <!-- Bundled so one TapPackage installs the GUI and its test steps.
+         To separate later, remove this line and add a PackageDependency
+         on MiniGui.TestSteps instead. -->
+    <File Path="Packages/MiniGui/MiniGui.TestSteps.dll" SourcePath="MiniGui.TestSteps.dll" />
   </Files>
 
 </Package>
