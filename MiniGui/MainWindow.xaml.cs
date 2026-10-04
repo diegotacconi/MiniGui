@@ -1,8 +1,11 @@
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Threading;
 using Microsoft.Win32;
@@ -13,6 +16,7 @@ namespace MiniGui
     public partial class MainWindow : Window
     {
         private const int MaxDisplayedResults = 10000;
+        public static readonly RoutedCommand ClearCommand = new RoutedCommand();
         private readonly MiniGuiLogListener _logListener;
         private readonly TestPlanController _controller;
         private readonly ObservableCollection<MiniGuiResultEntry> _results =
@@ -171,6 +175,26 @@ namespace MiniGui
             var text = _logListener.GetSelectedText();
             if (!string.IsNullOrEmpty(text))
                 Clipboard.SetText(text);
+        }
+
+        private void ClearResultsPanel_Click(object sender, RoutedEventArgs e)
+        {
+            _results.Clear();
+        }
+
+        private void CopyResultsPanel_Click(object sender, RoutedEventArgs e)
+        {
+            var entries = ResultsList.SelectedItems.Count > 0
+                ? ResultsList.SelectedItems.Cast<MiniGuiResultEntry>().ToList()
+                : _results.ToList();
+            if (entries.Count == 0)
+                return;
+
+            var lines = new List<string> { "Timestamp\tStep\tTable\tField\tValue" };
+            foreach (var entry in entries)
+                lines.Add(string.Join("\t",
+                    entry.Timestamp, entry.Source, entry.Table, entry.Field, entry.Value));
+            Clipboard.SetText(string.Join(Environment.NewLine, lines));
         }
 
         private void OnStateChanged(MiniGuiState state)
