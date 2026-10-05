@@ -131,7 +131,7 @@
 
                 <ListView.ContextMenu>
                     <ContextMenu>
-                        <MenuItem Header="Clear Results Panel" InputGestureText="Ctrl+L"
+                        <MenuItem Header="Clear" InputGestureText="Ctrl+L"
                                   Click="ClearResultsPanel_Click">
                             <MenuItem.Icon>
                                 <Image Source="pack://application:,,,/MiniGui;component/Resources/ClearWindowContent.64.png"
@@ -202,7 +202,7 @@
 
                 <ListView.ContextMenu>
                     <ContextMenu>
-                        <MenuItem Header="Clear Log Panel" InputGestureText="Ctrl+L"
+                        <MenuItem Header="Clear" InputGestureText="Ctrl+L"
                                   Click="ClearLogPanel_Click">
                             <MenuItem.Icon>
                                 <Image Source="pack://application:,,,/MiniGui;component/Resources/ClearWindowContent.64.png"
