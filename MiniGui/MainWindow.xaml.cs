@@ -188,8 +188,7 @@ namespace MiniGui
             var items = GetSelectedItems<MiniGuiResultEntry>(ResultsList);
             if (items.Count == 0)
                 return;
-            Clipboard.SetText(string.Join(Environment.NewLine, items.Select(entry =>
-                string.Join("\t", entry.Timestamp, entry.Source, entry.Table, entry.Field, entry.Value))));
+            Clipboard.SetText(string.Join(Environment.NewLine, items.Select(entry => entry.ToString())));
         }
 
         // Returns the selected rows of a list, or every row when nothing is selected, preserving list order.

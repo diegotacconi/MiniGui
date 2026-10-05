@@ -13,6 +13,11 @@ namespace MiniGui
         public string Table { get; set; }
         public string Field { get; set; }
         public string Value { get; set; }
+
+        public override string ToString()
+        {
+            return $"{Timestamp} ; {Source} ; {Table} ; {Field} ; {Value}";
+        }
     }
 
     internal sealed class MiniGuiResultListener : ResultListener
