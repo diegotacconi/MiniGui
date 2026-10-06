@@ -6,6 +6,21 @@
         Width="960" Height="960" MinWidth="480" MinHeight="480"
         UseLayoutRounding="True"
         WindowStartupLocation="CenterScreen">
+    <Window.Resources>
+        <!-- Button icon style; dims the icon along with the button text when disabled -->
+        <Style x:Key="ButtonIconStyle" TargetType="Image">
+            <Setter Property="Width" Value="16" />
+            <Setter Property="Height" Value="16" />
+            <Setter Property="Margin" Value="0,0,6,0" />
+            <Setter Property="Stretch" Value="Uniform" />
+            <Style.Triggers>
+                <Trigger Property="IsEnabled" Value="False">
+                    <Setter Property="Opacity" Value="0.35" />
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+    </Window.Resources>
+
     <Grid Margin="12">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
@@ -24,7 +39,7 @@
                             Padding="10,5" Click="Browse_Click">
                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                             <Image Source="pack://application:,,,/MiniGui;component/Resources/OpenFolder.64.png"
-                                Width="16" Height="16" Margin="0,0,6,0" Stretch="Uniform" />
+                                   Style="{StaticResource ButtonIconStyle}" />
                             <TextBlock Text="Browse..." VerticalAlignment="Center" />
                         </StackPanel>
                     </Button>
@@ -62,7 +77,7 @@
                             Padding="18,5" Click="Start_Click">
                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                             <Image Source="pack://application:,,,/MiniGui;component/Resources/Play.64.png"
-                                Width="16" Height="16" Margin="0,0,6,0" Stretch="Uniform" />
+                                   Style="{StaticResource ButtonIconStyle}" />
                             <TextBlock Text="Start" VerticalAlignment="Center" />
                         </StackPanel>
                     </Button>
@@ -72,18 +87,42 @@
                             Padding="18,5" Margin="8,0,0,0" Click="Stop_Click">
                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                             <Image Source="pack://application:,,,/MiniGui;component/Resources/Stop.64.png"
-                                Width="16" Height="16" Margin="0,0,6,0" Stretch="Uniform" />
+                                   Style="{StaticResource ButtonIconStyle}" />
                             <TextBlock Text="Stop" VerticalAlignment="Center" />
                         </StackPanel>
                     </Button>
 
                     <!-- State status-->
-                    <TextBlock x:Name="StateText" Margin="18,0,0,0"
-                            VerticalAlignment="Center" Text="Idle" />
+                    <StackPanel Orientation="Horizontal" Margin="18,0,0,0" VerticalAlignment="Center">
 
-                    <!-- Verdict status -->
-                    <TextBlock x:Name="VerdictText" Margin="18,0,0,0"
-                            VerticalAlignment="Center" Text="Verdict: -" />
+                        <!-- Activity ring, shown only while Running or Stopping; Hidden (not Collapsed) keeps its slot reserved -->
+                        <Path x:Name="ActivityRing" Width="14" Height="14" Margin="0,0,6,0"
+                              VerticalAlignment="Center" Visibility="Hidden"
+                              Stroke="{DynamicResource {x:Static SystemColors.HighlightBrushKey}}"
+                              StrokeThickness="2" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
+                              RenderTransformOrigin="0.5,0.5" IsHitTestVisible="False"
+                              Data="M 7,1 A 6,6 0 1 1 1,7">
+                            <Path.RenderTransform>
+                                <RotateTransform x:Name="ActivityRingRotation" Angle="0" />
+                            </Path.RenderTransform>
+                        </Path>
+
+                        <!-- Hidden longest-text sizers reserve a stable width for the state label -->
+                        <Grid VerticalAlignment="Center">
+                            <TextBlock Text="No plan loaded" Visibility="Hidden" />
+                            <TextBlock Text="Stopping after 9999.99 s" Visibility="Hidden" />
+                            <TextBlock Text="Completed in 9999.99 s" Visibility="Hidden" />
+                            <TextBlock Text="Aborted after 9999.99 s" Visibility="Hidden" />
+                            <TextBlock Text="Failed after 9999.99 s" Visibility="Hidden" />
+                            <TextBlock x:Name="StateText" Text="Idle" />
+                        </Grid>
+                    </StackPanel>
+
+                    <!-- Verdict status; hidden sizer reserves width for the longest OpenTAP verdict -->
+                    <Grid Margin="18,0,0,0" VerticalAlignment="Center">
+                        <TextBlock Text="Verdict: Inconclusive" Visibility="Hidden" />
+                        <TextBlock x:Name="VerdictText" Text="Verdict: -" />
+                    </Grid>
 
                 </StackPanel>
             </StackPanel>

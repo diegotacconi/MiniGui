@@ -9,16 +9,12 @@ namespace MiniGui
 {
     internal enum MiniGuiState
     {
-        Idle,
-        Loading,
-        Ready,
-        Running,
-        Stopping,
-        Completed,
-        Passed,
-        Failed,
-        Stopped,
-        Error
+        Idle,       // No test plan loaded.
+        Loading,    // A test plan is being loaded.
+        LoadFailed, // The last load attempt failed; any previously loaded plan is kept.
+        Ready,      // A test plan is loaded and can be run.
+        Running,    // The test plan is executing.
+        Stopping    // Stop was requested; waiting for the run to end.
     }
 
     internal sealed class TestPlanController : IDisposable
@@ -30,12 +26,15 @@ namespace MiniGui
         private MiniGuiResultListener _resultListener;
         private bool _isRunning;
         private bool _disposed;
-
         public event Action<MiniGuiState> StateChanged;
 
         public MiniGuiState State { get; private set; } = MiniGuiState.Idle;
         public string LoadedPath { get; private set; }
         public Verdict? CurrentVerdict { get; private set; }
+
+        // Set while State is LoadFailed.
+        public string FailedLoadPath { get; private set; }
+        public Exception LoadError { get; private set; }
         public bool IsRunning
         {
             get
@@ -76,12 +75,31 @@ namespace MiniGui
                 CurrentVerdict = null;
                 SetState(MiniGuiState.Ready);
             }
-            catch
+            catch (Exception ex)
             {
-                _plan = null;
-                LoadedPath = null;
-                SetState(MiniGuiState.Error);
+                // A failed load leaves any previously loaded plan in place.
+                FailedLoadPath = TryGetFullPath(path);
+                LoadError = ex;
+                SetState(MiniGuiState.LoadFailed);
                 throw;
+            }
+        }
+
+        public void ClearLoadFailure()
+        {
+            if (State == MiniGuiState.LoadFailed && !IsRunning)
+                SetState(_plan != null ? MiniGuiState.Ready : MiniGuiState.Idle);
+        }
+
+        private static string TryGetFullPath(string path)
+        {
+            try
+            {
+                return Path.GetFullPath(path);
+            }
+            catch (Exception)
+            {
+                return path;
             }
         }
 
@@ -126,21 +144,13 @@ namespace MiniGui
                     .ConfigureAwait(false);
 
                 CurrentVerdict = run.Verdict;
-                SetState(token.IsCancellationRequested
-                    ? MiniGuiState.Stopped
-                    : GetStateForVerdict(run.Verdict));
                 return run.Verdict;
             }
             catch (OperationCanceledException) when (token.IsCancellationRequested)
             {
-                CurrentVerdict = Verdict.Inconclusive;
-                SetState(MiniGuiState.Stopped);
-                return Verdict.Inconclusive;
-            }
-            catch
-            {
-                SetState(MiniGuiState.Error);
-                throw;
+                // OpenTAP normally returns an Aborted run on cancellation.
+                CurrentVerdict = Verdict.Aborted;
+                return Verdict.Aborted;
             }
             finally
             {
@@ -150,6 +160,8 @@ namespace MiniGui
                     _runCancellation.Dispose();
                     _runCancellation = null;
                 }
+                // The plan stays loaded after any run outcome, so it is ready to run again.
+                SetState(MiniGuiState.Ready);
             }
         }
 
@@ -171,17 +183,13 @@ namespace MiniGui
             return _resultListener?.Drain(maximumCount) ?? new List<MiniGuiResultEntry>();
         }
 
-        private static MiniGuiState GetStateForVerdict(Verdict verdict)
-        {
-            if (verdict == Verdict.Pass)
-                return MiniGuiState.Passed;
-            if (verdict == Verdict.Fail)
-                return MiniGuiState.Failed;
-            return MiniGuiState.Completed;
-        }
-
         private void SetState(MiniGuiState state)
         {
+            if (state != MiniGuiState.LoadFailed)
+            {
+                FailedLoadPath = null;
+                LoadError = null;
+            }
             State = state;
             StateChanged?.Invoke(state);
         }
