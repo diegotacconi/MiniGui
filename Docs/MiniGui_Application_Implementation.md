@@ -387,20 +387,18 @@ Suggested enum:
 ```csharp
 public enum MiniGuiState
 {
-    Startup,
-    Loading,
-    Ready,
-    Running,
-    Stopping,
-    Completed,
-    Passed,
-    Failed,
-    Stopped,
-    Error
+    Idle,       // No test plan loaded.
+    Loading,    // A test plan is being loaded.
+    LoadFailed, // The last load attempt failed; any previously loaded plan is kept.
+    Ready,      // A test plan is loaded and can be run.
+    Running,    // The test plan is executing.
+    Stopping    // Stop was requested; waiting for the run to end.
 }
 ```
 
-Button enablement and status display should derive from this state.
+Button enablement and status display should derive from this state. The status area shows the live
+elapsed run time (with a delayed activity ring), then "Completed in", "Aborted after", or "Failed after"
+the run duration; the verdict is shown separately.
 
 A failing test verdict is not the same as a MiniGui application error.
 
