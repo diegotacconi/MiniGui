@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-<Package Name="MiniGui" Version="0.0.3" OS="Windows" Architecture="AnyCPU" xmlns="http://opentap.io/schemas/package">
+<Package Name="MiniGui" Version="$(GitVersion)" OS="Windows" Architecture="AnyCPU" xmlns="http://opentap.io/schemas/package">
   <Description>Minimal WPF operator window for running OpenTAP plans.</Description>
   <SourceUrl>https://github.com/diegotacconi/MiniGui</SourceUrl>
 
@@ -9,11 +9,15 @@
   </Dependencies>
 
   <Files>
-    <File Path="Packages/MiniGui/MiniGui.dll" SourcePath="MiniGui.dll" />
+    <File Path="Packages/MiniGui/MiniGui.dll" SourcePath="MiniGui.dll">
+      <SetAssemblyInfo Attributes="Version" />
+    </File>
     <!-- Bundled so one TapPackage installs the GUI and its test steps.
          To separate later, remove this line and add a PackageDependency
          on MiniGui.TestSteps instead. -->
-    <File Path="Packages/MiniGui/MiniGui.TestSteps.dll" SourcePath="MiniGui.TestSteps.dll" />
+    <File Path="Packages/MiniGui/MiniGui.TestSteps.dll" SourcePath="MiniGui.TestSteps.dll">
+      <SetAssemblyInfo Attributes="Version" />
+    </File>
   </Files>
 
 </Package>
