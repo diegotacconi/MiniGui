@@ -35,7 +35,6 @@ namespace MiniGui
         private string _runOutcome;
         private ScrollViewer _resultsScrollViewer;
         private bool _followResultsTail = true;
-        private string _lastAttemptedPath;
         private bool _closeRequested;
         private bool _listenersStopped;
 
@@ -100,59 +99,12 @@ namespace MiniGui
             }
         }
 
-        private void PlanPathBox_TextChanged(object sender, TextChangedEventArgs e)
-        {
-            _lastAttemptedPath = null;
-            if (_controller == null)
-                return;
-
-            if (!_controller.HasPlan)
-            {
-                // Editing the path dismisses a previous load failure.
-                _controller.ClearLoadFailure();
-                return;
-            }
-
-            if (string.Equals(PlanPathBox.Text, _controller.LoadedPath, StringComparison.Ordinal))
-                return;
-
-            _controller.UnloadPlan();
-            VerdictText.Text = "Verdict: -";
-            UpdateControls();
-        }
-
-        private void PlanPathBox_KeyDown(object sender, KeyEventArgs e)
-        {
-            if (e.Key != Key.Enter)
-                return;
-            e.Handled = true;
-            // Enter is an explicit request, so retry even a path that already failed.
-            LoadTypedPath(retry: true);
-        }
-
-        private void PlanPathBox_LostFocus(object sender, RoutedEventArgs e)
-        {
-            LoadTypedPath(retry: false);
-        }
-
-        private void LoadTypedPath(bool retry)
-        {
-            var path = PlanPathBox.Text;
-            if (_controller.IsRunning || _closeRequested || _controller.HasPlan ||
-                string.IsNullOrWhiteSpace(path) ||
-                (!retry && string.Equals(path, _lastAttemptedPath, StringComparison.Ordinal)))
-                return;
-            LoadPlan(path);
-        }
-
         private bool LoadPlan(string path)
         {
-            _lastAttemptedPath = path;
             try
             {
                 _controller.LoadPlan(path);
                 PlanPathBox.Text = _controller.LoadedPath;
-                _lastAttemptedPath = _controller.LoadedPath;
                 HadError = false;
                 VerdictText.Text = "Verdict: -";
                 UpdateControls();

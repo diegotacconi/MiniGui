@@ -85,12 +85,6 @@ namespace MiniGui
             }
         }
 
-        public void ClearLoadFailure()
-        {
-            if (State == MiniGuiState.LoadFailed && !IsRunning)
-                SetState(_plan != null ? MiniGuiState.Ready : MiniGuiState.Idle);
-        }
-
         private static string TryGetFullPath(string path)
         {
             try
