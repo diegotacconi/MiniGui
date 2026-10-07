@@ -1,4 +1,4 @@
-# TapMiniGui
+# MiniGui
 
 The OpenTAP `MiniGui` is a minimal WPF graphical user interface for running OpenTAP test plans.
 
