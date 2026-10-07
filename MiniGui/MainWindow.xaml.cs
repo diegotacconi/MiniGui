@@ -203,42 +203,6 @@ namespace MiniGui
             UpdateControls();
         }
 
-        private void ClearLogPanel_Click(object sender, RoutedEventArgs e)
-        {
-            _logListener.Clear();
-        }
-
-        private void CopyLogPanel_Click(object sender, RoutedEventArgs e)
-        {
-            var items = GetSelectedItems<MiniGuiLogEntry>(LogList);
-            if (items.Count == 0)
-                return;
-            Clipboard.SetText(string.Join(Environment.NewLine, items.Select(entry => entry.ToString())));
-        }
-
-        private void ClearResultsPanel_Click(object sender, RoutedEventArgs e)
-        {
-            _results.Clear();
-        }
-
-        private void CopyResultsPanel_Click(object sender, RoutedEventArgs e)
-        {
-            var items = GetSelectedItems<MiniGuiResultEntry>(ResultsList);
-            if (items.Count == 0)
-                return;
-            Clipboard.SetText(string.Join(Environment.NewLine, items.Select(entry => entry.ToString())));
-        }
-
-        // Returns the selected rows of a list, or every row when nothing is selected, preserving list order.
-        private static List<T> GetSelectedItems<T>(ListView list)
-        {
-            var selected = new HashSet<object>(list.SelectedItems.Cast<object>());
-            return list.Items.Cast<object>()
-                .OfType<T>()
-                .Where(item => list.SelectedItems.Count == 0 || selected.Contains(item))
-                .ToList();
-        }
-
         private void OnStateChanged(MiniGuiState state)
         {
             if (Dispatcher.CheckAccess())
@@ -338,6 +302,77 @@ namespace MiniGui
             StopButton.IsEnabled = _controller.IsRunning && _controller.State == MiniGuiState.Running;
         }
 
+        public void RequestShutdown()
+        {
+            if (!Dispatcher.CheckAccess())
+            {
+                Dispatcher.BeginInvoke(new Action(RequestShutdown));
+                return;
+            }
+
+            Close();
+        }
+
+        protected override void OnClosing(CancelEventArgs e)
+        {
+            if (_controller.IsRunning)
+            {
+                _closeRequested = true;
+                _controller.RequestStop();
+                UpdateControls();
+                e.Cancel = true;
+            }
+            else if (!_listenersStopped)
+            {
+                _resultTimer.Stop();
+                _runTimer.Stop();
+                _activityDelayTimer.Stop();
+                if (_resultsScrollViewer != null)
+                    _resultsScrollViewer.ScrollChanged -= OnResultsScrollChanged;
+                _controller.Dispose();
+                _logListener.Stop();
+                _listenersStopped = true;
+            }
+
+            base.OnClosing(e);
+        }
+        
+        private void ClearLogPanel_Click(object sender, RoutedEventArgs e)
+        {
+            _logListener.Clear();
+        }
+
+        private void CopyLogPanel_Click(object sender, RoutedEventArgs e)
+        {
+            var items = GetSelectedItems<MiniGuiLogEntry>(LogList);
+            if (items.Count == 0)
+                return;
+            Clipboard.SetText(string.Join(Environment.NewLine, items.Select(entry => entry.ToString())));
+        }
+
+        private void ClearResultsPanel_Click(object sender, RoutedEventArgs e)
+        {
+            _results.Clear();
+        }
+
+        private void CopyResultsPanel_Click(object sender, RoutedEventArgs e)
+        {
+            var items = GetSelectedItems<MiniGuiResultEntry>(ResultsList);
+            if (items.Count == 0)
+                return;
+            Clipboard.SetText(string.Join(Environment.NewLine, items.Select(entry => entry.ToString())));
+        }
+
+        // Returns the selected rows of a list, or every row when nothing is selected, preserving list order.
+        private static List<T> GetSelectedItems<T>(ListView list)
+        {
+            var selected = new HashSet<object>(list.SelectedItems.Cast<object>());
+            return list.Items.Cast<object>()
+                .OfType<T>()
+                .Where(item => list.SelectedItems.Count == 0 || selected.Contains(item))
+                .ToList();
+        }
+
         private void DrainResults()
         {
             var batch = _controller.DrainResults(500);
@@ -396,41 +431,6 @@ namespace MiniGui
             }
 
             return null;
-        }
-
-        public void RequestShutdown()
-        {
-            if (!Dispatcher.CheckAccess())
-            {
-                Dispatcher.BeginInvoke(new Action(RequestShutdown));
-                return;
-            }
-
-            Close();
-        }
-
-        protected override void OnClosing(CancelEventArgs e)
-        {
-            if (_controller.IsRunning)
-            {
-                _closeRequested = true;
-                _controller.RequestStop();
-                UpdateControls();
-                e.Cancel = true;
-            }
-            else if (!_listenersStopped)
-            {
-                _resultTimer.Stop();
-                _runTimer.Stop();
-                _activityDelayTimer.Stop();
-                if (_resultsScrollViewer != null)
-                    _resultsScrollViewer.ScrollChanged -= OnResultsScrollChanged;
-                _controller.Dispose();
-                _logListener.Stop();
-                _listenersStopped = true;
-            }
-
-            base.OnClosing(e);
         }
     }
 }

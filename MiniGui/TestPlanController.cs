@@ -35,12 +35,15 @@ namespace MiniGui
         // Set while State is LoadFailed.
         public string FailedLoadPath { get; private set; }
         public Exception LoadError { get; private set; }
+
         public bool IsRunning
         {
             get
             {
                 lock (_gate)
+                {
                     return _isRunning;
+                }
             }
         }
 
@@ -194,6 +197,7 @@ namespace MiniGui
             {
                 if (_isRunning)
                     throw new InvalidOperationException("Stop the active test plan before disposing the controller.");
+
                 if (_disposed)
                     return;
 
