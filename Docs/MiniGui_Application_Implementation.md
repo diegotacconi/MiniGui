@@ -385,7 +385,7 @@ Use a small explicit state model.
 Suggested enum:
 
 ```csharp
-public enum MiniGuiState
+public enum TestPlanState
 {
     Idle,       // No test plan loaded.
     Loading,    // A test plan is being loaded.
