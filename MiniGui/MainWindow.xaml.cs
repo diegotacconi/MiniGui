@@ -5,6 +5,7 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
+using System.Reflection;
 using System.Windows;
 using System.Windows.Automation;
 using System.Windows.Controls;
@@ -29,7 +30,7 @@ namespace MiniGui
         private readonly Stopwatch _runStopwatch = new Stopwatch();
         private readonly DispatcherTimer _runTimer;
         private readonly DispatcherTimer _activityDelayTimer;
-        private MiniGuiState _displayState = MiniGuiState.Idle;
+        private TestPlanState _displayState = TestPlanState.Idle;
         private bool _runActive;
         private bool _stopRequested;
         private string _runOutcome;
@@ -43,6 +44,8 @@ namespace MiniGui
         public MainWindow(string initialPath)
         {
             InitializeComponent();
+            var version = GetAssemblyVersion();
+            Title = version is null ? "MiniGui" : $"MiniGui (v{version})";
             _runTimer = new DispatcherTimer(DispatcherPriority.Normal, Dispatcher)
             {
                 Interval = TimeSpan.FromMilliseconds(50)
@@ -79,6 +82,20 @@ namespace MiniGui
                 if (!string.IsNullOrWhiteSpace(PlanPathBox.Text))
                     LoadPlan(PlanPathBox.Text);
             };
+        }
+
+        /// <summary>
+        /// Returns the assembly's informational version (from the csproj
+        /// <c>Version</c>), with any build-metadata suffix stripped, or
+        /// <c>null</c> if it is not available.
+        /// </summary>
+        private static string GetAssemblyVersion()
+        {
+            // Read from the assembly, not the type: the attribute is assembly-level
+            // and non-inherited, so a type lookup would always return null.
+            var version = typeof(MainWindow).Assembly
+                .GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion;
+            return version?.Split(new[] { '+' }, 2)[0];
         }
 
         private void Browse_Click(object sender, RoutedEventArgs e)
@@ -203,7 +220,7 @@ namespace MiniGui
             UpdateControls();
         }
 
-        private void OnStateChanged(MiniGuiState state)
+        private void OnStateChanged(TestPlanState state)
         {
             if (Dispatcher.CheckAccess())
                 ApplyState(state);
@@ -211,12 +228,12 @@ namespace MiniGui
                 Dispatcher.BeginInvoke(new Action(() => ApplyState(state)));
         }
 
-        private void ApplyState(MiniGuiState state)
+        private void ApplyState(TestPlanState state)
         {
             _displayState = state;
-            if (state == MiniGuiState.Stopping)
+            if (state == TestPlanState.Stopping)
                 _stopRequested = true;
-            else if (state != MiniGuiState.Running && state != MiniGuiState.Ready)
+            else if (state != TestPlanState.Running && state != TestPlanState.Ready)
                 _runOutcome = null;
 
             RefreshStateText();
@@ -226,7 +243,7 @@ namespace MiniGui
         private void RefreshStateText()
         {
             var state = _displayState;
-            if (state == MiniGuiState.LoadFailed && _controller.LoadError != null)
+            if (state == TestPlanState.LoadFailed && _controller.LoadError != null)
             {
                 var details = FormatLoadError(_controller.FailedLoadPath, _controller.LoadError);
                 if (_controller.HasPlan)
@@ -244,8 +261,8 @@ namespace MiniGui
             StateText.ClearValue(ToolTipProperty);
             StateText.ClearValue(AutomationProperties.HelpTextProperty);
 
-            if (_runActive && (state == MiniGuiState.Running || state == MiniGuiState.Stopping ||
-                               state == MiniGuiState.Ready))
+            if (_runActive && (state == TestPlanState.Running || state == TestPlanState.Stopping ||
+                               state == TestPlanState.Ready))
             {
                 // A Ready notification can arrive before the awaited run result; keep timing until it does.
                 var elapsed = FormatSeconds(_runStopwatch.Elapsed);
@@ -255,13 +272,13 @@ namespace MiniGui
 
             switch (state)
             {
-                case MiniGuiState.Idle:
+                case TestPlanState.Idle:
                     StateText.Text = "Idle";
                     break;
-                case MiniGuiState.Loading:
+                case TestPlanState.Loading:
                     StateText.Text = "Loading...";
                     break;
-                case MiniGuiState.Ready:
+                case TestPlanState.Ready:
                     StateText.Text = _runOutcome ?? "Ready";
                     break;
                 default:
@@ -299,7 +316,7 @@ namespace MiniGui
             StartButton.IsEnabled = _controller.HasPlan && !_controller.IsRunning && !_closeRequested;
             BrowseButton.IsEnabled = !_controller.IsRunning && !_closeRequested;
             PlanPathBox.IsEnabled = !_controller.IsRunning && !_closeRequested;
-            StopButton.IsEnabled = _controller.IsRunning && _controller.State == MiniGuiState.Running;
+            StopButton.IsEnabled = _controller.IsRunning && _controller.State == TestPlanState.Running;
         }
 
         public void RequestShutdown()

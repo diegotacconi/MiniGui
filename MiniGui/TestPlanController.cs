@@ -7,7 +7,7 @@ using OpenTap;
 
 namespace MiniGui
 {
-    internal enum MiniGuiState
+    internal enum TestPlanState
     {
         Idle,       // No test plan loaded.
         Loading,    // A test plan is being loaded.
@@ -26,9 +26,8 @@ namespace MiniGui
         private MiniGuiResultListener _resultListener;
         private bool _isRunning;
         private bool _disposed;
-        public event Action<MiniGuiState> StateChanged;
-
-        public MiniGuiState State { get; private set; } = MiniGuiState.Idle;
+        public event Action<TestPlanState> StateChanged;
+        public TestPlanState State { get; private set; } = TestPlanState.Idle;
         public string LoadedPath { get; private set; }
         public Verdict? CurrentVerdict { get; private set; }
 
@@ -60,7 +59,7 @@ namespace MiniGui
             if (IsRunning)
                 throw new InvalidOperationException("A test plan cannot be loaded while a run is active.");
 
-            SetState(MiniGuiState.Loading);
+            SetState(TestPlanState.Loading);
             try
             {
                 var fullPath = Path.GetFullPath(path);
@@ -76,14 +75,14 @@ namespace MiniGui
                 _plan = plan;
                 LoadedPath = fullPath;
                 CurrentVerdict = null;
-                SetState(MiniGuiState.Ready);
+                SetState(TestPlanState.Ready);
             }
             catch (Exception ex)
             {
                 // A failed load leaves any previously loaded plan in place.
                 FailedLoadPath = TryGetFullPath(path);
                 LoadError = ex;
-                SetState(MiniGuiState.LoadFailed);
+                SetState(TestPlanState.LoadFailed);
                 throw;
             }
         }
@@ -108,7 +107,7 @@ namespace MiniGui
             _plan = null;
             LoadedPath = null;
             CurrentVerdict = null;
-            SetState(MiniGuiState.Idle);
+            SetState(TestPlanState.Idle);
         }
 
         public async Task<Verdict> StartAsync()
@@ -131,7 +130,7 @@ namespace MiniGui
             }
 
             CurrentVerdict = null;
-            SetState(MiniGuiState.Running);
+            SetState(TestPlanState.Running);
             try
             {
                 _plan.PrintTestPlanRunSummary = true;
@@ -158,7 +157,7 @@ namespace MiniGui
                     _runCancellation = null;
                 }
                 // The plan stays loaded after any run outcome, so it is ready to run again.
-                SetState(MiniGuiState.Ready);
+                SetState(TestPlanState.Ready);
             }
         }
 
@@ -169,7 +168,7 @@ namespace MiniGui
                 if (!_isRunning || _runCancellation == null || _runCancellation.IsCancellationRequested)
                     return false;
 
-                SetState(MiniGuiState.Stopping);
+                SetState(TestPlanState.Stopping);
                 _runCancellation.Cancel();
                 return true;
             }
@@ -180,9 +179,9 @@ namespace MiniGui
             return _resultListener?.Drain(maximumCount) ?? new List<MiniGuiResultEntry>();
         }
 
-        private void SetState(MiniGuiState state)
+        private void SetState(TestPlanState state)
         {
-            if (state != MiniGuiState.LoadFailed)
+            if (state != TestPlanState.LoadFailed)
             {
                 FailedLoadPath = null;
                 LoadError = null;
