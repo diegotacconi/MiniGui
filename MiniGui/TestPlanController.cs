@@ -1,6 +1,9 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
+using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using OpenTap;
@@ -15,6 +18,26 @@ namespace MiniGui
         Ready,      // A test plan is loaded and can be run.
         Running,    // The test plan is executing.
         Stopping    // Stop was requested; waiting for the run to end.
+    }
+
+    // Not a user-selectable plugin; injected per run to observe when OpenTAP has finished timing it.
+    [Browsable(false)]
+    internal sealed class RunCompletedListener : ResultListener
+    {
+        private readonly Action _completed;
+
+        public RunCompletedListener(Action completed)
+        {
+            _completed = completed;
+            Name = "MiniGui run timer";
+        }
+
+        // Called on this listener's own result worker after TestPlanRun.Duration has been set,
+        // and before resources are closed and ExecuteAsync returns.
+        public override void OnTestPlanRunCompleted(TestPlanRun planRun, Stream logStream)
+        {
+            _completed();
+        }
     }
 
     internal sealed class TestPlanController : IDisposable
@@ -34,6 +57,46 @@ namespace MiniGui
         // Set while State is LoadFailed.
         public string FailedLoadPath { get; private set; }
         public Exception LoadError { get; private set; }
+
+        // Duration reported by OpenTAP (TestPlanRun.Duration) for the last run; null if no run result was returned.
+        public TimeSpan? LastRunDuration { get; private set; }
+
+        // Stopwatch timestamps bracketing the interval OpenTAP measures as TestPlanRun.Duration; 0 = not yet observed.
+        private long _runStartTimestamp;
+        private long _runEndTimestamp;
+
+        /// <summary>
+        /// Elapsed time of the current or last run, measured over the same interval OpenTAP uses for
+        /// <see cref="TestRun.Duration"/>. Null until OpenTAP has started the run. Stops advancing once
+        /// OpenTAP has finished timing the run, even while resources are still closing.
+        /// </summary>
+        public TimeSpan? GetAlignedElapsed()
+        {
+            var start = Interlocked.Read(ref _runStartTimestamp);
+            if (start == 0)
+                return null;
+            var end = Interlocked.Read(ref _runEndTimestamp);
+            return TimestampsToTimeSpan(start, end != 0 ? end : Stopwatch.GetTimestamp());
+        }
+
+        internal static TimeSpan TimestampsToTimeSpan(long start, long end)
+        {
+            var ticks = Math.Max(0, end - start);
+            return TimeSpan.FromTicks((long)(ticks * ((double)TimeSpan.TicksPerSecond / Stopwatch.Frequency)));
+        }
+
+        private void OnPlanPropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            // OpenTAP raises IsRunning on the plan thread right after creating the TestPlanRun and
+            // immediately before starting the stopwatch that produces TestPlanRun.Duration.
+            if (e.PropertyName == nameof(TestPlan.IsRunning) && sender is TestPlan plan && plan.IsRunning)
+                Interlocked.CompareExchange(ref _runStartTimestamp, Stopwatch.GetTimestamp(), 0);
+        }
+
+        private void MarkRunTimingEnded()
+        {
+            Interlocked.CompareExchange(ref _runEndTimestamp, Stopwatch.GetTimestamp(), 0);
+        }
 
         public bool IsRunning
         {
@@ -127,18 +190,28 @@ namespace MiniGui
                 _runCancellation = new CancellationTokenSource();
                 token = _runCancellation.Token;
                 _resultListener = new MiniGuiResultListener();
+                LastRunDuration = null;
+                Interlocked.Exchange(ref _runStartTimestamp, 0);
+                Interlocked.Exchange(ref _runEndTimestamp, 0);
             }
 
             CurrentVerdict = null;
+            var plan = _plan;
             SetState(TestPlanState.Running);
+            plan.PropertyChanged += OnPlanPropertyChanged;
             try
             {
-                _plan.PrintTestPlanRunSummary = true;
+                plan.PrintTestPlanRunSummary = true;
+                // MiniGui's result listener, the configured listeners, plus one that marks when OpenTAP stops timing the run.
                 var listeners = new List<IResultListener> { _resultListener };
                 listeners.AddRange(ResultSettings.Current);
-                var run = await _plan.ExecuteAsync(listeners, new List<ResultParameter>(), null, token)
+                listeners.Add(new RunCompletedListener(MarkRunTimingEnded));
+
+                var run = await plan.ExecuteAsync(listeners, new List<ResultParameter>(), null, token)
                     .ConfigureAwait(false);
 
+                MarkRunTimingEnded();
+                LastRunDuration = run.Duration;
                 CurrentVerdict = run.Verdict;
                 return run.Verdict;
             }
@@ -150,6 +223,8 @@ namespace MiniGui
             }
             finally
             {
+                plan.PropertyChanged -= OnPlanPropertyChanged;
+                MarkRunTimingEnded();
                 lock (_gate)
                 {
                     _isRunning = false;
